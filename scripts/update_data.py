@@ -3,10 +3,10 @@ from pathlib import Path
 
 def update_data():
     # url do csv com dados atualizados da epoca atual
-    url = "https://www.football-data.co.uk/mmz4281/2526/P1.csv"
+    url = "https://www.football-data.co.uk/mmz4281/2627/P1.csv"
     
     # caminho para guardar csv atualizado
-    file_path = Path("data/raw/LigaPortugal25-26.csv")
+    file_path = Path("data/raw/LigaPortugal26-27.csv")
     
     print("Downloading ultimos jogos da epoca atual...")
     

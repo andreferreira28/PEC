@@ -186,6 +186,84 @@ def calc_standings(path_raw):
     
     return df_final
     
+def add_last_season_rank(df):
+    # calcular pontos obtidos por jogo
+    home_pts = np.where(df['FTR'] == 'H', 3, np.where(df['FTR'] == 'D', 1, 0))
+    away_pts = np.where(df['FTR'] == 'A', 3, np.where(df['FTR'] == 'D', 1, 0))
+    
+    home_df = pd.DataFrame({'Season': df['Season'], 'Team': df['HomeTeam'], 'Pts': home_pts, 'GS': df['FTHG'], 'GC': df['FTAG']})
+    away_df = pd.DataFrame({'Season': df['Season'], 'Team': df['AwayTeam'], 'Pts': away_pts, 'GS': df['FTAG'], 'GC': df['FTHG']})
+    
+    all_matches = pd.concat([home_df, away_df], ignore_index=True).dropna(subset=['Pts'])
+    
+    # somar totais da epoca
+    season_totals = all_matches.groupby(['Season', 'Team']).agg(Points=('Pts', 'sum'), GS=('GS', 'sum'), GC=('GC', 'sum')).reset_index()
+    season_totals['GD'] = season_totals['GS'] - season_totals['GC']
+    
+    # ordenar e atribuir rank final
+    season_totals = season_totals.sort_values(by=['Season', 'Points', 'GD', 'GS'], ascending=[True,False,False,False]).reset_index(drop=True)
+    
+    season_totals['FinalRank'] = season_totals.groupby('Season').cumcount() + 1
+    
+    final_ranks = season_totals[['Season', 'Team', 'FinalRank']].copy()
+    
+    # dicionario com ranks da epoca 16-17 para preencher primeiros jogos da epoca 17-18
+    rank_16_17 = [
+        {'Season': '16-17', 'Team': 'Benfica', 'FinalRank': 1},
+        {'Season': '16-17', 'Team': 'Porto', 'FinalRank': 2},
+        {'Season': '16-17', 'Team': 'Sp Lisbon', 'FinalRank': 3}, 
+        {'Season': '16-17', 'Team': 'Guimaraes', 'FinalRank': 4},
+        {'Season': '16-17', 'Team': 'Braga', 'FinalRank': 5},
+        {'Season': '16-17', 'Team': 'Maritimo', 'FinalRank': 6},
+        {'Season': '16-17', 'Team': 'Rio Ave', 'FinalRank': 7},
+        {'Season': '16-17', 'Team': 'Feirense', 'FinalRank': 8},
+        {'Season': '16-17', 'Team': 'Boavista', 'FinalRank': 9},
+        {'Season': '16-17', 'Team': 'Estoril', 'FinalRank': 10},
+        {'Season': '16-17', 'Team': 'Chaves', 'FinalRank': 11},
+        {'Season': '16-17', 'Team': 'Setubal', 'FinalRank': 12},
+        {'Season': '16-17', 'Team': 'Pacos Ferreira', 'FinalRank': 13},
+        {'Season': '16-17', 'Team': 'Belenenses', 'FinalRank': 14},
+        {'Season': '16-17', 'Team': 'Moreirense', 'FinalRank': 15},
+        {'Season': '16-17', 'Team': 'Tondela', 'FinalRank': 16},
+        {'Season': '16-17', 'Team': 'Arouca', 'FinalRank': 17},
+        {'Season': '16-17', 'Team': 'Nacional', 'FinalRank': 18}
+    ]
+    
+    df_16_17 = pd.DataFrame(rank_16_17)
+    final_ranks = pd.concat([df_16_17,final_ranks], ignore_index=True)
+    
+    # mapeara a epoca anterior
+    def get_prev_season(s):
+        try:
+            parts = s.split('-')
+            return f"{int(parts[0])-1:02d}-{int(parts[1])-1:02d}"
+        except:
+            return None
+        
+    df['PrevSeason'] = df['Season'].apply(get_prev_season)
+    
+    # preparar a tabela de merge para evitar conflitos de colunas
+    ranks_to_merge = final_ranks.rename(columns={'Season': 'PrevSeason', 'Team': 'MergeTeam', 'FinalRank': 'RankVal'})
+    
+    df = df.merge(
+        ranks_to_merge, 
+        left_on=['PrevSeason', 'HomeTeam'], 
+        right_on=['PrevSeason', 'MergeTeam'], 
+        how='left'
+    ).rename(columns={'RankVal': 'Home_LastRank'}).drop(columns=['MergeTeam'])
+    
+    df = df.merge(
+        ranks_to_merge, 
+        left_on=['PrevSeason', 'AwayTeam'], 
+        right_on=['PrevSeason', 'MergeTeam'], 
+        how='left'
+    ).rename(columns={'RankVal': 'Away_LastRank'}).drop(columns=['MergeTeam', 'PrevSeason'])
+    
+    # preencher recem promovidos com 19
+    df['Home_LastRank'] = df['Home_LastRank'].fillna(19)
+    df['Away_LastRank'] = df['Away_LastRank'].fillna(19)
+    
+    return df
 def add_rolling_features(df):
     # criar colunas para jogos em casa e fora
     home = df[['Date', 'HomeTeam', 'FTHG', 'FTAG', 'FTR', 'Season']].copy() # manter colunas relevantes para rolling
@@ -243,6 +321,7 @@ def add_rolling_features(df):
 
 def add_difference_features(df):
     df['Rank_Diff'] = df['HomeRank'] - df['AwayRank']
+    df['LastRank_Diff'] = df['Home_LastRank'] - df['Away_LastRank']
     df['Form_Diff'] = df['Home_L5_Form_Pts'] - df['Away_L5_Form_Pts']
     df['GD_Diff'] = df['HomeGD'] - df['AwayGD']
     
@@ -285,6 +364,7 @@ def add_season_of_the_year(df):
 
 def main():
     df = calc_standings("data/raw")
+    df = add_last_season_rank(df)
     df = add_rolling_features(df)
     df = add_difference_features(df)
     df = add_season_of_the_year(df)
@@ -302,7 +382,7 @@ def main():
         
         df = df[cols]
     
-    df.to_csv("data/processed/LigaPortugal17-26.csv", index=False)
+    df.to_csv("data/processed/LigaPortugal.csv", index=False)
     print('Dados processados e guardados com sucesso.')
     
 if __name__ == "__main__":

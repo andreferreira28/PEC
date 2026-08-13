@@ -56,7 +56,9 @@ def get_future_matches(api_key):
         "CD Santa Clara": "Santa Clara",
         "Vitória SC": "Guimaraes",
         "CD Tondela": "Tondela",
-        "Rio Ave FC": "Rio Ave"
+        "Rio Ave FC": "Rio Ave",
+        "CS Marítimo": "Maritimo"
+        #"Académico de Viseu FC": "Academico Viseu"
     }
     
     # criar lista de dicionarios com dados dos proximos jogos
@@ -92,7 +94,7 @@ def main():
     df = get_future_matches(api_key)
     
     if df is not None:
-        file_path = Path("data/raw/LigaPortugal25-26.csv")
+        file_path = Path("data/raw/LigaPortugal26-27.csv")
         old_df = pd.read_csv(file_path)
         
         old_df = old_df.dropna(subset=['FTR'])

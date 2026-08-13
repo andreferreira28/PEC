@@ -36,7 +36,8 @@ def load_and_prep_data(file_path):
         'Stadium', 'Home_L5_GS', 'Home_L5_GC', 'Home_L5_Form_Pts',
         'Away_L5_GS', 'Away_L5_GC', 'Away_L5_Form_Pts',
         'Rank_Diff', 'Form_Diff', 'GD_Diff', 'HomePPG', 'AwayPPG',
-        'PPG_Diff', 'HomeGDpg', 'AwayGDpg', 'GDpg_Diff', 'WeatherSeason'
+        'PPG_Diff', 'HomeGDpg', 'AwayGDpg', 'GDpg_Diff', 'WeatherSeason',
+        'Home_LastRank', 'Away_LastRank', 'LastRank_Diff'
     ]
     
     # features para remover apos ablation study
@@ -83,6 +84,7 @@ def train_model(df_played, features_reduced, le):
     )
     
     model.fit(X_train, y_train)
+    model.save_model('pregame_model.json') # para power bi
     
     return model
 
@@ -111,6 +113,7 @@ def train_model_binary(df_played, features):
     )
     
     model.fit(X_train, y_train)
+    model.save_model('pregame_model_bin.json') # para power bi
     
     return model, le_bin
 '''
@@ -180,7 +183,7 @@ def predict_future_matches(model, model_binary, df_future, features_reduced, le,
         
         
 def main():
-    file_path = "data/processed/LigaPortugal17-26.csv"
+    file_path = "data/processed/LigaPortugal.csv"
         
     df_played, df_future, features_reduced, le, features = load_and_prep_data(file_path)
         

@@ -28,7 +28,23 @@ The project directory and file structure are organized as follows:
  ┣ 📜 README.md         # Repository documentation
  ┗ 📜 requirements.txt  # Project dependencies and required Python libraries
 ```
+---
+## 🛠️ Built With
 
+This project integrates a full data science pipeline, from data extraction to visualization:
+* **Machine Learning:** XGBoost, Scikit-learn
+* **Hyperparameter Optimization:** Optuna
+* **Data Manipulation & Analysis:** pandas, NumPy
+* **Visualization:** Power BI (Custom Python Visuals), Matplotlib, Seaborn
+---
+## 🧠 The Machine Learning Pipeline
+
+The core of this project relies on predicting the probabilities of Home Win, Draw, and Away Win (1X2 market). The pipeline includes:
+1. **Feature Engineering:** Calculation of rolling averages, goal differentials, and recent form metrics to capture team momentum.
+2. **Hyperparameter Tuning:** Automated search for the optimal tree depth, learning rate, and regularization parameters using Optuna.
+3. **Evaluation:** The models are evaluated using Log Loss and Brier Score, with detailed calibration plots available in the `figures/` directory.
+
+---
 ## ⚙️ Setup and Installation
 
 ### 1. Clone the Repository and Install Dependencies
@@ -70,16 +86,23 @@ python main.py
 If you want to analyze the code step-by-step, train models individually, or regenerate the plots inside the `figures/` folder, you should use the file `pregame_test.ipynb` within the `notebooks/` folder.
 
 ---
+## 📊 Data Visualization
+
+To consume the model's predictions in a clean, production-ready environment, a custom Power BI dashboard was built. It dynamically reads the generated probabilities and renders TV-broadcast-style horizontal bars using embedded Python scripts.
+
+![Power BI Dashboard Overview](figures/dashboard.png)
+*(Example: Matchday predictions displaying win/draw/loss probabilities with dynamically adjusted, collision-free text markers).*
+---
 
 ## 🔄 Maintenance: Transitioning to New Seasons
 
-The project is currently configured for the *2025/2026* season. If you wish to update the model for the following season (e.g., 2026/2027), you will need to update two variables inside the `scripts/update_data.py` script:
+The project is currently configured for the *2026/2027* season. If you wish to update the model for the following season (e.g., 2027/2028), you will need to update two variables inside the `scripts/update_data.py` script and one variable inside the `scripts/future_matches.py` script:
 
 1. **API URL:** Update the season year in the *football-data* URL.
-   From: `https://www.football-data.co.uk/mmz4281/2526/P1.csv`
-   To: `https://www.football-data.co.uk/mmz4281/2627/P1.csv`
+   From: `https://www.football-data.co.uk/mmz4281/2627/P1.csv`
+   To: `https://www.football-data.co.uk/mmz4281/2728/P1.csv`
 2. **Local Path:** Update the file name for the new season.
-   From: `file_path = Path("data/raw/LigaPortugal25-26.csv")`
-   To: `file_path = Path("data/raw/LigaPortugal26-27.csv")`
+   From: `file_path = Path("data/raw/LigaPortugal26-27.csv")`
+   To: `file_path = Path("data/raw/LigaPortugal27-28.csv")`
 
 When you execute the script, it will automatically detect that it is a new season and create the new base file autonomously.
