@@ -90,8 +90,9 @@ If you want to analyze the code step-by-step, train models individually, or rege
 
 To consume the model's predictions in a clean, production-ready environment, a custom Power BI dashboard was built. It dynamically reads the generated probabilities and renders TV-broadcast-style horizontal bars using embedded Python scripts.
 
-![Power BI Dashboard Overview](figures/dashboard.png)
+![Power BI Dashboard Multi Overview](figures/dashboard_multi.png)
 *(Example: Matchday predictions displaying win/draw/loss probabilities with dynamically adjusted, collision-free text markers).*
+![Power BI Dashboard Bin Overview](figures/dashboard_bin.png)
 ---
 
 ## 🔄 Maintenance: Transitioning to New Seasons
